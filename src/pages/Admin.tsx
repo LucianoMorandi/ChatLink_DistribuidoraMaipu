@@ -5,6 +5,7 @@ import {
   addDoc,
   getDocs,
   doc,
+  deleteDoc,
   updateDoc,
   arrayUnion,
 } from "firebase/firestore";
@@ -26,6 +27,9 @@ const Admin: React.FC = () => {
   const [category, setCategory] = useState('');
   const [newCategory, setNewCategory] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
+  const [products, setProducts] = useState<
+    (Product & { id: string })[]
+  >([]);
 
   // Traer categorías desde Firestore
   useEffect(() => {
@@ -38,6 +42,19 @@ const Admin: React.FC = () => {
     };
     fetchCategories();
   }, []);
+
+  // Cargar productos al inicio
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const snap = await getDocs(collection(db, 'products'));
+      const list = snap.docs.map((doc) => ({
+        ...(doc.data() as Product),
+        id: doc.id,
+      }));
+      setProducts(list);
+    };
+    fetchProducts();
+  }, [])
 
   // Maneja la carda de imagen a Cloudinary
   const handleImageUpload = async (): Promise<string | null> => {
@@ -106,6 +123,17 @@ const Admin: React.FC = () => {
     }
   };
 
+  // Eliminar un producto
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+    try {
+      await deleteDoc(doc(db, 'products', id));
+      setProducts((prev) => prev.filter((prod) => prod.id !== id));
+    } catch (error) {
+      console.error('Error al eliminar producto:', error);
+    }
+  };
+
   return (
     <div style={{ padding: 20, maxWidth: 500, margin: '0 auto' }}>
       <h2>Panel de Administrador</h2>
@@ -166,6 +194,41 @@ const Admin: React.FC = () => {
         onChange={(e) => setCategory(e.target.value)}
       />
       <button onClick={handleAddCategory}>Agregar Categoría</button>
+
+      <hr style={{ margin: '2rem 0' }}/>
+      
+      <h2>Productos cargados</h2>
+      <ul>
+        {products.map((prod) => (
+          <li
+            key={prod.id}
+            style={{
+              border: '1px solid #ccc',
+              padding: '10px',
+              marginBottom: '10px',
+              borderRadius: '5px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+            }}
+          >
+            <img src={prod.imageUrl} alt={prod.name} width={50} height={50} />
+            <div>
+              <strong>{prod.name}</strong> - ${prod.price}
+              <div style={{ fontSize: '0.9rem', color: '#555' }}>
+                Categoría: {prod.category}
+              </div>
+            </div>
+            <button
+              onClick={() => handleDelete(prod.id)}
+              style={{ marginLeft: 'auto', backgroundColor: '#f44336', color: 'white' }}
+            >
+              Eliminar
+            </button>
+          </li>
+        ))}
+      </ul>
+
     </div>
   );
 };
