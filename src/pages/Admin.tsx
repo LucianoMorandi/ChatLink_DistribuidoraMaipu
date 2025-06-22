@@ -1,236 +1,285 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../firebase";
 import {
   collection,
-  addDoc,
   getDocs,
   doc,
   deleteDoc,
   updateDoc,
+  addDoc,
   arrayUnion,
 } from "firebase/firestore";
-import axios from "axios"
+import { db } from "../firebase";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-const CLIENT_FOLDER = 'distribuidora_maipu';
+const CLIENT_FOLDER = "distribuidora_maipu";
+const PAGE_SIZE = 5;
 
 interface Product {
+  id: string;
   name: string;
+  description: string;
   price: number;
-  imageUrl: string;
+  image: string;
   category: string;
 }
 
 const Admin: React.FC = () => {
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState<number>(0);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [category, setCategory] = useState('');
-  const [newCategory, setNewCategory] = useState('');
+  const navigate = useNavigate();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [products, setProducts] = useState<
-    (Product & { id: string })[]
-  >([]);
+  const [newCategory, setNewCategory] = useState("");
+  const [form, setForm] = useState<Omit<Product, "id">>({
+    name: "",
+    description: "",
+    price: 0,
+    image: "",
+    category: "",
+  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [page, setPage] = useState(1);
 
-  // Traer categorías desde Firestore
   useEffect(() => {
-    const fetchCategories = async () => {
-      const docSnap = await getDocs(collection(db, 'config'));
-      const configData = docSnap.docs[0]?.data();
-      if (configData?.categories) {
-        setCategories(configData.categories);
-      }
-    };
+    const isAuth = localStorage.getItem("auth");
+    if (isAuth !== "true") navigate("/login");
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
     fetchCategories();
   }, []);
 
-  // Cargar productos al inicio
   useEffect(() => {
-    const fetchProducts = async () => {
-      const snap = await getDocs(collection(db, 'products'));
-      const list = snap.docs.map((doc) => ({
-        ...(doc.data() as Product),
-        id: doc.id,
-      }));
-      setProducts(list);
-    };
-    fetchProducts();
-  }, [])
+    let filtered = [...products];
+    if (search) {
+      filtered = filtered.filter((p) =>
+        p.name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    if (filterCategory) {
+      filtered = filtered.filter((p) => p.category === filterCategory);
+    }
+    setFilteredProducts(filtered);
+    setPage(1);
+  }, [search, filterCategory, products]);
 
-  // Maneja la carda de imagen a Cloudinary
+  const fetchProducts = async () => {
+    const snap = await getDocs(collection(db, "products"));
+    const list = snap.docs.map((doc) => ({ ...(doc.data() as Product), id: doc.id }));
+    setProducts(list);
+  };
+
+  const fetchCategories = async () => {
+    const snap = await getDocs(collection(db, "config"));
+    const config = snap.docs[0]?.data();
+    if (config?.categories) setCategories(config.categories);
+  };
+
   const handleImageUpload = async (): Promise<string | null> => {
     if (!imageFile) return null;
-
     const formData = new FormData();
-    formData.append('file', imageFile);
-    formData.append('upload_preset', 'chatlink_unsigned');
-    formData.append('folder', CLIENT_FOLDER);
-
+    formData.append("file", imageFile);
+    formData.append("upload_preset", "chatlink_unsigned");
+    formData.append("folder", CLIENT_FOLDER);
     try {
       const res = await axios.post(
-        'https://api.cloudinary.com/v1_1/dxksxp1nx/image/upload',
+        "https://api.cloudinary.com/v1_1/dxksxp1nx/image/upload",
         formData
       );
       return res.data.secure_url;
-    } catch (error) {
-      console.error('Error subiendo imagen:', error);
+    } catch (e) {
+      console.error("Error subiendo imagen", e);
       return null;
     }
   };
 
-  // Agrega nueva categoría a Firestore
-  const handleAddCategory = async () => {
-    if (!newCategory.trim()) return;
-
-    try {
-      const configRef = doc(db, 'config', 'global');
-      await updateDoc(configRef, {
-        categories: arrayUnion(newCategory.trim()),
-      });
-      setCategories((prev) => [...prev, newCategory.trim()]);
-      setNewCategory('');
-    } catch (error) {
-      console.error('Error agregando categoría', error);
-    }
-  };
-
-  // Guarda producto en Firestore
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const imageUrl = await handleImageUpload();
-    if(!imageUrl) {
-      alert('Error subiendo la imagen');
+  const handleSave = async () => {
+    const imageUrl = imageFile ? await handleImageUpload() : form.image;
+    if (!form.name || !form.description || !form.price || !form.category || !imageUrl) {
+      alert("Todos los campos son requeridos");
       return;
     }
-
-    const newProduct: Product = {
-      name,
-      price,
-      imageUrl,
-      category,
-    };
-
-    try {
-      await addDoc(collection(db, 'products'), newProduct);
-      alert('Producto agregado con éxito');
-      // Reset form
-      setName('');
-      setPrice(0);
-      setImageFile(null);
-      setCategory('');
-    } catch (error) {
-      console.error('Error agregando producto:', error);
+    const productData = { ...form, image: imageUrl };
+    if (editingId) {
+      await updateDoc(doc(db, "products", editingId), productData);
+    } else {
+      await addDoc(collection(db, "products"), productData);
     }
+    setForm({ name: "", description: "", price: 0, image: "", category: "" });
+    setImageFile(null);
+    setEditingId(null);
+    fetchProducts();
   };
 
-  // Eliminar un producto
+  const handleEdit = (prod: Product) => {
+    setForm({ ...prod });
+    setEditingId(prod.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este producto?')) return;
-    try {
-      await deleteDoc(doc(db, 'products', id));
-      setProducts((prev) => prev.filter((prod) => prod.id !== id));
-    } catch (error) {
-      console.error('Error al eliminar producto:', error);
+    if (confirm("¿Eliminar producto?")) {
+      await deleteDoc(doc(db, "products", id));
+      fetchProducts();
     }
   };
+
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) return;
+    const configRef = doc(db, "config", "global");
+    await updateDoc(configRef, {
+      categories: arrayUnion(newCategory.trim()),
+    });
+    setCategories((prev) => [...prev, newCategory.trim()]);
+    setNewCategory("");
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("auth");
+    navigate("/");
+  };
+
+  const paginated = filteredProducts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div style={{ padding: 20, maxWidth: 500, margin: '0 auto' }}>
-      <h2>Panel de Administrador</h2>
+    <div className="p-4 max-w-xl mx-auto">
+      <button
+        onClick={handleLogout}
+        className="bg-red-600 text-white px-4 py-2 rounded mb-4"
+      >
+        Cerrar sesión
+      </button>
 
-      <form onSubmit={handleSubmit}>
-        <label>Nombre:</label>
-        <input 
-        type="text"
-        value={name}
-        required
-        onChange={(e) => setName(e.target.value)}
+      <h2 className="text-xl font-bold mb-2">Formulario producto</h2>
+      <div className="space-y-2">
+        <input
+          placeholder="Nombre"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          className="w-full border px-2 py-1"
         />
-
-        <label>Precio:</label>
-        <input 
+        <input
+          placeholder="Descripción"
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          className="w-full border px-2 py-1"
+        />
+        <input
+          placeholder="Precio"
           type="number"
-          value={price}
-          required
-          onChange={(e) => setPrice(Number(e.target.value))}
+          value={form.price}
+          onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+          className="w-full border px-2 py-1"
         />
-
-        <label>Imagen:</label>
-        <input 
+        <select
+          value={form.category}
+          onChange={(e) => setForm({ ...form, category: e.target.value })}
+          className="w-full border px-2 py-1"
+        >
+          <option value="">Seleccionar categoría</option>
+          {categories.map((cat) => (
+            <option key={cat}>{cat}</option>
+          ))}
+        </select>
+        <input
           type="file"
           accept="image/*"
-          required
           onChange={(e) =>
             setImageFile(e.target.files ? e.target.files[0] : null)
           }
         />
-
-        <label>Categoría:</label>
-        <select 
-          value={category}
-          required
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          <option value="">Selecionar</option>
-          {categories.map((cat, idx) => (
-            <option key={idx} value={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
-
-        <button type="submit" style={{ marginTop: 10 }}>
-          Agregar Producto
+        <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-2 rounded">
+          {editingId ? "Guardar cambios" : "Agregar producto"}
         </button>
-      </form>
+      </div>
 
-      <hr />
+      <div className="mt-6">
+        <input
+          placeholder="Nueva categoría"
+          value={newCategory}
+          onChange={(e) => setNewCategory(e.target.value)}
+          className="border px-2 py-1"
+        />
+        <button onClick={handleAddCategory} className="ml-2 bg-green-600 text-white px-3 py-1 rounded">
+          Agregar
+        </button>
+      </div>
 
-      <h3>Agregar nueva categoría</h3>
-      <input 
-        type="text"
-        placeholder="Ej: Perro adulto"
-        value={newCategory}
-        onChange={(e) => setCategory(e.target.value)}
-      />
-      <button onClick={handleAddCategory}>Agregar Categoría</button>
-
-      <hr style={{ margin: '2rem 0' }}/>
-      
-      <h2>Productos cargados</h2>
-      <ul>
-        {products.map((prod) => (
-          <li
-            key={prod.id}
-            style={{
-              border: '1px solid #ccc',
-              padding: '10px',
-              marginBottom: '10px',
-              borderRadius: '5px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '1rem',
-            }}
+      <div className="mt-8 space-y-4">
+        <div className="flex gap-2">
+          <input
+            placeholder="Buscar por nombre"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border px-2 py-1 w-full"
+          />
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="border px-2 py-1"
           >
-            <img src={prod.imageUrl} alt={prod.name} width={50} height={50} />
-            <div>
-              <strong>{prod.name}</strong> - ${prod.price}
-              <div style={{ fontSize: '0.9rem', color: '#555' }}>
-                Categoría: {prod.category}
-              </div>
-            </div>
-            <button
-              onClick={() => handleDelete(prod.id)}
-              style={{ marginLeft: 'auto', backgroundColor: '#f44336', color: 'white' }}
-            >
-              Eliminar
-            </button>
-          </li>
-        ))}
-      </ul>
+            <option value="">Todas</option>
+            {categories.map((cat) => (
+              <option key={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
 
+        {paginated.map((prod) => (
+          <div
+            key={prod.id}
+            className="border p-2 rounded flex gap-4 items-center"
+          >
+            <img src={prod.image} alt={prod.name} className="w-16 h-16 object-cover" />
+            <div className="flex-1">
+              <strong>{prod.name}</strong>
+              <div>{prod.description}</div>
+              <div className="text-sm text-gray-600">{prod.category}</div>
+              <div className="font-bold text-green-600">${prod.price}</div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <button
+                onClick={() => handleEdit(prod)}
+                className="bg-yellow-400 px-2 py-1 text-sm rounded"
+              >
+                Editar
+              </button>
+              <button
+                onClick={() => handleDelete(prod.id)}
+                className="bg-red-500 text-white px-2 py-1 text-sm rounded"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {filteredProducts.length > PAGE_SIZE && (
+          <div className="flex justify-center gap-4 mt-4">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="bg-gray-300 px-2 py-1 rounded"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page * PAGE_SIZE >= filteredProducts.length}
+              className="bg-gray-300 px-2 py-1 rounded"
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default Admin;
+
