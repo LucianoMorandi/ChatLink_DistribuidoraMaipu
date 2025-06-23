@@ -1,8 +1,8 @@
-// src/pages/Login.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import styles from "./Login.module.css";
 
-// DATPS DE CLIENTE, CAMBIAR
+// DATOS DE CLIENTE
 const USER = "admin";
 const PASSWORD = "1234";
 
@@ -24,25 +24,25 @@ const Login = () => {
   };
 
   return (
-    <div className="p-4 max-w-sm mx-auto text-center">
-      <h1 className="text-xl font-bold mb-4">Acceso Administrador</h1>
-      <form onSubmit={handleLogin} className="flex flex-col gap-4">
+    <div className={styles.container}>
+      <h1 className={styles.title}>Acceso Administrador</h1>
+      <form onSubmit={handleLogin} className={styles.form}>
         <input
           type="text"
           placeholder="Usuario"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="border p-2 rounded"
+          className={styles.input}
         />
         <input
           type="password"
           placeholder="Contraseña"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="border p-2 rounded"
+          className={styles.input}
         />
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        <button type="submit" className="bg-blue-600 text-white p-2 rounded">
+        {error && <p className={styles.error}>{error}</p>}
+        <button type="submit" className={styles.button}>
           Ingresar
         </button>
       </form>

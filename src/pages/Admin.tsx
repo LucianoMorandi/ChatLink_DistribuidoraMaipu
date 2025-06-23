@@ -11,6 +11,7 @@ import {
 import { db } from "../firebase";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import styles from "./Admin.module.css";
 
 const CLIENT_FOLDER = "distribuidora_maipu";
 const PAGE_SIZE = 5;
@@ -146,39 +147,36 @@ const Admin: React.FC = () => {
   const paginated = filteredProducts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="p-4 max-w-xl mx-auto">
-      <button
-        onClick={handleLogout}
-        className="bg-red-600 text-white px-4 py-2 rounded mb-4"
-      >
+    <div className={styles.container}>
+      <button onClick={handleLogout} className={styles.logoutBtn}>
         Cerrar sesión
       </button>
 
-      <h2 className="text-xl font-bold mb-2">Formulario producto</h2>
-      <div className="space-y-2">
+      <h2 className={styles.sectionTitle}>Formulario producto</h2>
+      <div className={styles.form}>
         <input
           placeholder="Nombre"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="w-full border px-2 py-1"
+          className={styles.input}
         />
         <input
           placeholder="Descripción"
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
-          className="w-full border px-2 py-1"
+          className={styles.input}
         />
         <input
           placeholder="Precio"
           type="number"
           value={form.price}
           onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-          className="w-full border px-2 py-1"
+          className={styles.input}
         />
         <select
           value={form.category}
           onChange={(e) => setForm({ ...form, category: e.target.value })}
-          className="w-full border px-2 py-1"
+          className={styles.select}
         >
           <option value="">Seleccionar categoría</option>
           {categories.map((cat) => (
@@ -188,39 +186,37 @@ const Admin: React.FC = () => {
         <input
           type="file"
           accept="image/*"
-          onChange={(e) =>
-            setImageFile(e.target.files ? e.target.files[0] : null)
-          }
+          onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)}
         />
-        <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-2 rounded">
+        <button onClick={handleSave} className={styles.saveBtn}>
           {editingId ? "Guardar cambios" : "Agregar producto"}
         </button>
       </div>
 
-      <div className="mt-6">
+      <div className={styles.addCategory}>
         <input
           placeholder="Nueva categoría"
           value={newCategory}
           onChange={(e) => setNewCategory(e.target.value)}
-          className="border px-2 py-1"
+          className={styles.input}
         />
-        <button onClick={handleAddCategory} className="ml-2 bg-green-600 text-white px-3 py-1 rounded">
+        <button onClick={handleAddCategory} className={styles.addCategoryBtn}>
           Agregar
         </button>
       </div>
 
-      <div className="mt-8 space-y-4">
-        <div className="flex gap-2">
+      <div className={styles.productList}>
+        <div className={styles.searchFilters}>
           <input
             placeholder="Buscar por nombre"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border px-2 py-1 w-full"
+            className={styles.input}
           />
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="border px-2 py-1"
+            className={styles.select}
           >
             <option value="">Todas</option>
             {categories.map((cat) => (
@@ -230,28 +226,19 @@ const Admin: React.FC = () => {
         </div>
 
         {paginated.map((prod) => (
-          <div
-            key={prod.id}
-            className="border p-2 rounded flex gap-4 items-center"
-          >
-            <img src={prod.image} alt={prod.name} className="w-16 h-16 object-cover" />
-            <div className="flex-1">
+          <div key={prod.id} className={styles.productCard}>
+            <img src={prod.image} alt={prod.name} className={styles.productImage} />
+            <div className={styles.productInfo}>
               <strong>{prod.name}</strong>
               <div>{prod.description}</div>
-              <div className="text-sm text-gray-600">{prod.category}</div>
-              <div className="font-bold text-green-600">${prod.price}</div>
+              <div className={styles.categoryText}>{prod.category}</div>
+              <div className={styles.price}>${prod.price}</div>
             </div>
-            <div className="flex flex-col gap-1">
-              <button
-                onClick={() => handleEdit(prod)}
-                className="bg-yellow-400 px-2 py-1 text-sm rounded"
-              >
+            <div className={styles.actions}>
+              <button onClick={() => handleEdit(prod)} className={styles.editBtn}>
                 Editar
               </button>
-              <button
-                onClick={() => handleDelete(prod.id)}
-                className="bg-red-500 text-white px-2 py-1 text-sm rounded"
-              >
+              <button onClick={() => handleDelete(prod.id)} className={styles.deleteBtn}>
                 Eliminar
               </button>
             </div>
@@ -259,18 +246,18 @@ const Admin: React.FC = () => {
         ))}
 
         {filteredProducts.length > PAGE_SIZE && (
-          <div className="flex justify-center gap-4 mt-4">
+          <div className={styles.pagination}>
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="bg-gray-300 px-2 py-1 rounded"
+              className={styles.pageBtn}
             >
               Anterior
             </button>
             <button
               onClick={() => setPage((p) => p + 1)}
               disabled={page * PAGE_SIZE >= filteredProducts.length}
-              className="bg-gray-300 px-2 py-1 rounded"
+              className={styles.pageBtn}
             >
               Siguiente
             </button>

@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import type { Product } from "../types/products";
 import { getProducts } from "../services/productService";
 import ProductCard from "../components/ProductCard";
-import logo from "../assets/logo_distribuidora_maipu.jpg"; // Asegurate de tener el logo aquí
-import portada from "../assets/portada_distribuidora_maipu.jpg"; // Imagen de bienvenida
+import logo from "../assets/logo_distribuidora_maipu.jpg";
+import portada from "../assets/portada_distribuidora_maipu.jpg";
 import { Link } from "react-router-dom";
+import styles from "./Home.module.css";
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -43,54 +44,54 @@ const Home = () => {
   };
 
   if (loading) {
-    return <p className="text-center mt-10">Cargando productos...</p>;
+    return <p className={styles.loading}>Cargando productos...</p>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
+    <div className={styles.container}>
       {/* Portada */}
-      <div className="w-full">
-        <img src={portada} alt="portada" className="w-full max-h-60 object-cover" />
+      <div className={styles.portadaWrapper}>
+        <img src={portada} alt="portada" className={styles.portada} />
       </div>
 
       {/* Logo y bienvenida */}
-      <div className="text-center my-4">
-        <img src={logo} alt="logo" className="h-20 mx-auto mb-2" />
-        <h1 className="text-2xl font-bold text-gray-800">¡Bienvenidos a Distribuidora Maipú!</h1>
-        <p className="text-gray-600">Seleccioná una marca o buscá tu producto.</p>
+      <div className={styles.header}>
+        <img src={logo} alt="logo" className={styles.logo} />
+        <h1 className={styles.title}>¡Bienvenidos a Distribuidora Maipú!</h1>
+        <p className={styles.subtitle}>Seleccioná una marca o buscá tu producto.</p>
       </div>
 
       {/* Buscador */}
-      <div className="flex justify-center mb-4 px-4">
+      <div className={styles.searchWrapper}>
         <input
           type="text"
           placeholder="Buscar producto..."
-          className="w-full max-w-md px-4 py-2 border rounded shadow-sm"
+          className={styles.searchInput}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
       {/* Desplegables por marca */}
-      <div className="px-4 space-y-4">
+      <div className={styles.categoriesWrapper}>
         {groupedByCategory.map(({ category, items }) => (
-          <div key={category} className="bg-white rounded shadow">
+          <div key={category} className={styles.categoryCard}>
             <button
               onClick={() => toggleCategory(category)}
-              className="w-full text-left px-4 py-3 font-semibold text-white bg-blue-600 rounded-t hover:bg-blue-700 transition"
+              className={`${styles.categoryButton} ${
+                activeCategory === category ? styles.activeCategory : ""
+              }`}
             >
               {category}
             </button>
             {activeCategory === category && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
+              <div className={styles.productsGrid}>
                 {items.length > 0 ? (
                   items.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))
                 ) : (
-                  <p className="text-center col-span-full text-gray-500">
-                    No hay productos para esta marca.
-                  </p>
+                  <p className={styles.noProducts}>No hay productos para esta marca.</p>
                 )}
               </div>
             )}
@@ -99,8 +100,8 @@ const Home = () => {
       </div>
 
       {/* Admin link */}
-      <div className="text-center mt-10">
-        <Link to="/login" className="text-sm text-blue-600 underline">
+      <div className={styles.adminLinkWrapper}>
+        <Link to="/login" className={styles.adminLink}>
           Acceso administrador
         </Link>
       </div>
