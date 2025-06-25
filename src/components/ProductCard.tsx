@@ -6,6 +6,12 @@ interface Props {
 }
 
 const ProductCard = ({ product }: Props) => {
+
+  const optimizedUrl = product.image.replace(
+    "/upload/",
+    "/upload/f_auto,q_auto,w_600/"
+  );
+
   const handleBuy = () => {
     const message = encodeURIComponent(
       `Hola, estoy interesado en este producto:\n\n` +
@@ -19,8 +25,9 @@ const ProductCard = ({ product }: Props) => {
   return (
     <div className={styles.card}>
       <img
-        src={product.image}
+        src={optimizedUrl}
         alt={product.name}
+        loading="lazy"
         className={styles.image}
       />
       <h3 className={styles.title}>{product.name}</h3>
