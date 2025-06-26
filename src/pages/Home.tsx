@@ -3,7 +3,7 @@ import type { Product } from "../types/products";
 import { getProducts } from "../services/productService";
 import ProductCard from "../components/ProductCard";
 import logo from "../assets/logo_distribuidora_maipu.png";
-import portada from "../assets/portada_distribuidora_maipu.jpg";
+import portada from "../assets/portada3.png";
 import styles from "./Home.module.css";
 import Footer from "../components/Footer";
 
@@ -72,32 +72,47 @@ const Home = () => {
         />
       </div>
 
+      {/* Productos buscados */}
+      {search && (
+        <div className={styles.productsGrid}>
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          ) : (
+            <p className={styles.noProducts}>No se encontraron productos.</p>
+          )}
+        </div>
+      )}
+
       {/* Desplegables por marca */}
-      <div className={styles.categoriesWrapper}>
-        {groupedByCategory.map(({ category, items }) => (
-          <div key={category} className={styles.categoryCard}>
-            <button
-              onClick={() => toggleCategory(category)}
-              className={`${styles.categoryButton} ${
-                activeCategory === category ? styles.activeCategory : ""
-              }`}
-            >
-              {category}
-            </button>
-            {activeCategory === category && (
-              <div className={styles.productsGrid}>
-                {items.length > 0 ? (
-                  items.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))
-                ) : (
-                  <p className={styles.noProducts}>No hay productos para esta marca.</p>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      {!search && (
+        <div className={styles.categoriesWrapper}>
+          {groupedByCategory.map(({ category, items }) => (
+            <div key={category} className={styles.categoryCard}>
+              <button
+                onClick={() => toggleCategory(category)}
+                className={`${styles.categoryButton} ${
+                  activeCategory === category ? styles.activeCategory : ""
+                }`}
+              >
+                {category}
+              </button>
+              {activeCategory === category && (
+                <div className={styles.productsGrid}>
+                  {items.length > 0 ? (
+                    items.map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                    ))
+                  ) : (
+                    <p className={styles.noProducts}>No hay productos para esta marca.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       <Footer />
     </div>
@@ -105,3 +120,4 @@ const Home = () => {
 };
 
 export default Home;
+

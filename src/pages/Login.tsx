@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Login.module.css";
 
-// DATOS DE CLIENTE
 const USER = "admin";
 const PASSWORD = "1234";
 

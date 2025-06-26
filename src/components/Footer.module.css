@@ -1,21 +1,39 @@
-.container {
+.footer {
+  margin-top: 3rem;
+  padding: 1rem 2rem;
+  background-color: #f1f1f1;
+  border-top: 1px solid #ddd;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  background-color: #f4f4f4;
-  padding: 1rem 2rem;
-  font-size: 0.85rem;
-  border-top: 1px solid #ccc;
-  margin-top: 2rem;
+  font-family: var(--fuente-principal);
+  font-size: 0.95rem;
+  color: #333;
 }
 
 .link {
-  color: #6cbf2d; /* Verde manzana oscuro */
-  text-decoration: underline;
+  text-decoration: none;
+  color: #5b9445;
   font-weight: 500;
+  transition: color 0.2s;
 }
 
-.text {
-  color: #666;
-  font-style: italic;
+.link:hover {
+  color: #3f7032;
+}
+
+.right {
+  text-align: right;
+  font-weight: 400;
+}
+
+.chatlink {
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.chatlink:hover {
+  text-decoration: underline;
 }
