@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import type { Product } from "../types/products";
 import { getProducts } from "../services/productService";
 import ProductCard from "../components/ProductCard";
-import logo from "../assets/logo_distribuidora_maipu.jpg";
+import logo from "../assets/logo_distribuidora_maipu.png";
 import portada from "../assets/portada_distribuidora_maipu.jpg";
-import { Link } from "react-router-dom";
 import styles from "./Home.module.css";
 import Footer from "../components/Footer";
 
@@ -98,13 +97,6 @@ const Home = () => {
             )}
           </div>
         ))}
-      </div>
-
-      {/* Admin link */}
-      <div className={styles.adminLinkWrapper}>
-        <Link to="/login" className={styles.adminLink}>
-          Acceso administrador
-        </Link>
       </div>
 
       <Footer />
