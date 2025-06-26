@@ -6,6 +6,7 @@ import logo from "../assets/logo_distribuidora_maipu.jpg";
 import portada from "../assets/portada_distribuidora_maipu.jpg";
 import { Link } from "react-router-dom";
 import styles from "./Home.module.css";
+import Footer from "../components/Footer";
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -105,6 +106,8 @@ const Home = () => {
           Acceso administrador
         </Link>
       </div>
+
+      <Footer />
     </div>
   );
 };
