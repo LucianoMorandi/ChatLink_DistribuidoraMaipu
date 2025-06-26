@@ -1,9 +1,18 @@
+import { useNavigate } from "react-router-dom";
 import styles from "./Footer.module.css";
 
 const Footer = () => {
+  const navigate = useNavigate();
+
   return (
     <footer className={styles.footer}>
       <div className={styles.left}>
+        <button className={styles.adminBtn} onClick={() => navigate("/login")}>
+          Acceso administrador
+        </button>
+      </div>
+
+      <div className={styles.right}>
         <small>
           Aplicación creada con{" "}
           <a
@@ -16,13 +25,11 @@ const Footer = () => {
           </a>
         </small>
       </div>
-      <div className={styles.right}>
-        <small>© {new Date().getFullYear()} Distribuidora Maipú</small>
-      </div>
     </footer>
   );
 };
 
 export default Footer;
+
 
 
