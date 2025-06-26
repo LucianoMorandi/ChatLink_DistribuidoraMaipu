@@ -3,7 +3,7 @@ import type { Product } from "../types/products";
 import { getProducts } from "../services/productService";
 import ProductCard from "../components/ProductCard";
 import logo from "../assets/logo_distribuidora_maipu.png";
-import portada from "../assets/portada3.png";
+import portada from "../assets/portada2.png";
 import styles from "./Home.module.css";
 import Footer from "../components/Footer";
 
