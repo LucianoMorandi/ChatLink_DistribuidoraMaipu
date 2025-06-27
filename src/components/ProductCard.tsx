@@ -14,12 +14,12 @@ const ProductCard = ({ product }: Props) => {
 
   const handleBuy = () => {
     const message = encodeURIComponent(
-      `Hola, estoy interesado en este producto:\n\n` +
+      `Hola Distribuidora Maipú, estoy interesado en este producto:\n\n` +
       `🛍 Producto: ${product.name}\n💵 Precio: $${product.price}\n\n` +
       `¿Podrías darme más información?`
     );
 
-    window.open(`https://wa.me/5492616093134?text=${message}`, "_blank");
+    window.open(`https://wa.me/5492613065967?text=${message}`, "_blank");
   };
 
   return (
